@@ -349,18 +349,40 @@
             const element = document.getElementById('payslipContent');
             const employeeName = document.getElementById('in_name').value.trim();
             const monthText = document.getElementById('in_month').value;
-            
             const fileName = `熵禾有限公司 薪資單_${employeeName || '未命名'}_${monthText}.pdf`;
 
+            // 複製節點專門用於導出，徹底免除手機/電腦螢幕縮放影響
+            const clone = element.cloneNode(true);
+            clone.style.width = '700px';
+            clone.style.maxWidth = '700px';
+            clone.style.position = 'absolute';
+            clone.style.left = '-9999px';
+            clone.style.top = '0';
+            clone.style.background = '#ffffff';
+            document.body.appendChild(clone);
+
             const opt = {
-                margin:       [5, 5, 5, 5],
+                margin:       [8, 8, 8, 8],
                 filename:     fileName,
                 image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 2, useCORS: true, windowWidth: 800 },
+                html2canvas:  { 
+                    scale: 2, 
+                    useCORS: true, 
+                    scrollX: 0, 
+                    scrollY: 0,
+                    width: 700
+                },
                 jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
 
-            html2pdf().from(element).set(opt).save();
+            html2pdf().from(clone).set(opt).save().then(() => {
+                document.body.removeChild(clone);
+            }).catch(err => {
+                console.error(err);
+                if (document.body.contains(clone)) {
+                    document.body.removeChild(clone);
+                }
+            });
         }
 
         window.onload = calculate;
