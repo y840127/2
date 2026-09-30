@@ -55,12 +55,21 @@
         
         .footer-note { margin-top: 12px; font-size: 13px; color: #555; line-height: 1.5; }
         
+        /* 原生列印與 PDF 另存優化設定 */
         @media print {
-            body { background: white; }
-            .container { margin: 0; padding: 0; display: block; }
-            .control-panel { display: none; }
-            .preview-panel { display: block; width: 100%; }
-            .payslip-card { box-shadow: none; border: none; padding: 0; max-width: 100%; }
+            @page {
+                size: A4 portrait;
+                margin: 10mm;
+            }
+            body { 
+                background: white; 
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            .container { margin: 0; padding: 0; display: block; max-width: 100%; }
+            .control-panel { display: none !important; }
+            .preview-panel { display: block; width: 100%; min-width: 100%; }
+            .payslip-card { box-shadow: none; border: none; padding: 0; max-width: 100%; width: 100%; }
         }
     </style>
 </head>
@@ -166,7 +175,7 @@
                     <input type="number" id="in_leave_used" value="0" step="0.5" oninput="calculate()">
                 </div>
             </div>
-            <button class="btn-print" onclick="exportPDF()">📥 匯出 PDF (熵禾有限公司 薪資單)</button>
+            <button class="btn-print" onclick="exportPDF()">🖨️ 列印 / 另存 PDF 薪資單</button>
         </div>
 
         <div class="preview-panel">
@@ -256,8 +265,6 @@
         </div>
     </div>
 
-    <!-- 引入 html2pdf 庫 -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script>
         function get2026MonthDays(monthStr) {
             const daysMap = {
@@ -346,43 +353,8 @@
         }
 
         function exportPDF() {
-            const element = document.getElementById('payslipContent');
-            const employeeName = document.getElementById('in_name').value.trim();
-            const monthText = document.getElementById('in_month').value;
-            const fileName = `熵禾有限公司 薪資單_${employeeName || '未命名'}_${monthText}.pdf`;
-
-            // 複製節點專門用於導出，徹底免除手機/電腦螢幕縮放影響
-            const clone = element.cloneNode(true);
-            clone.style.width = '700px';
-            clone.style.maxWidth = '700px';
-            clone.style.position = 'absolute';
-            clone.style.left = '-9999px';
-            clone.style.top = '0';
-            clone.style.background = '#ffffff';
-            document.body.appendChild(clone);
-
-            const opt = {
-                margin:       [8, 8, 8, 8],
-                filename:     fileName,
-                image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { 
-                    scale: 2, 
-                    useCORS: true, 
-                    scrollX: 0, 
-                    scrollY: 0,
-                    width: 700
-                },
-                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
-            };
-
-            html2pdf().from(clone).set(opt).save().then(() => {
-                document.body.removeChild(clone);
-            }).catch(err => {
-                console.error(err);
-                if (document.body.contains(clone)) {
-                    document.body.removeChild(clone);
-                }
-            });
+            // 使用原生列印引擎，在手機/電腦上直接選擇「另存為 PDF」或列印
+            window.print();
         }
 
         window.onload = calculate;
