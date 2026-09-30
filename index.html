@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>熵禾有限公司 - 薪資單自動生成器</title>
+    <title>熵禾有限公司 - 薪資單自動生成器 (2026新制版)</title>
     <style>
         :root {
             --bg-color: #f9f6f0;
@@ -33,7 +33,6 @@
         .section-title { font-size: 13px; color: var(--text-muted); margin: 15px 0 8px; font-weight: bold; letter-spacing: 1px; border-left: 4px solid var(--primary); padding-left: 8px;}
         .preview-panel { flex: 1.5; min-width: 350px; display: flex; justify-content: center; align-items: flex-start; }
         
-        /* 調整卡片大小與邊距，確保整張薪資單在 A4 內一頁顯示完全 */
         .payslip-card { background: white; width: 100%; max-width: 650px; padding: 20px 25px; box-shadow: 0 8px 25px rgba(0,0,0,0.1); border: 1px solid var(--border-color); position: relative; box-sizing: border-box; }
         
         .payslip-header { text-align: center; margin-bottom: 15px; border-bottom: 3px double var(--print-border); padding-bottom: 10px; }
@@ -68,12 +67,25 @@
 <body>
     <div class="container">
         <div class="control-panel no-print">
-            <h2>📝 薪資資料輸入</h2>
+            <h2>📝 薪資資料輸入 (2026新制)</h2>
             
             <div style="display: flex; gap: 10px;">
                 <div class="form-group" style="flex: 1;">
                     <label>計薪月份</label>
-                    <input type="text" id="in_month" value="2026年9月" oninput="calculate()">
+                    <select id="in_month" onchange="calculate()">
+                        <option value="2026年1月">2026年1月 (31天)</option>
+                        <option value="2026年2月">2026年2月 (28天)</option>
+                        <option value="2026年3月">2026年3月 (31天)</option>
+                        <option value="2026年4月">2026年4月 (30天)</option>
+                        <option value="2026年5月">2026年5月 (31天)</option>
+                        <option value="2026年6月">2026年6月 (30天)</option>
+                        <option value="2026年7月">2026年7月 (31天)</option>
+                        <option value="2026年8月">2026年8月 (31天)</option>
+                        <option value="2026年9月" selected>2026年9月 (30天)</option>
+                        <option value="2026年10月">2026年10月 (31天)</option>
+                        <option value="2026年11月">2026年11月 (30天)</option>
+                        <option value="2026年12月">2026年12月 (31天)</option>
+                    </select>
                 </div>
                 <div class="form-group" style="flex: 1;">
                     <label>員工姓名</label>
@@ -98,11 +110,19 @@
                 </div>
             </div>
             
-            <div class="form-group">
-                <label>休息日加班 (天數)</label>
-                <input type="number" id="in_ot_days" value="0" step="0.5" oninput="calculate()">
-                <small>單日以8小時計。自動依勞基法 4/3 及 5/3 分段計算。</small>
+            <div style="display: flex; gap: 10px;">
+                <div class="form-group" style="flex: 1;">
+                    <label>加班天數 (8小時計)</label>
+                    <input type="number" id="in_ot_days" value="0" step="0.5" oninput="calculate()">
+                    <small>依2026當月天數計算</small>
+                </div>
+                <div class="form-group" style="flex: 1;">
+                    <label>國定假日出勤 (天數)</label>
+                    <input type="number" id="in_holiday_days" value="0" step="0.5" oninput="calculate()">
+                    <small>依法加發一日工資</small>
+                </div>
             </div>
+
             <div class="form-group">
                 <label>其他獎金 / 補貼</label>
                 <input type="number" id="in_bonus" value="0" oninput="calculate()">
@@ -192,10 +212,16 @@
                         <td class="amount" id="out_tax">0</td>
                     </tr>
                     <tr>
-                        <td>休息日加班費 <br><span style="font-size: 12px; font-weight: normal; color: #666;" id="out_ot_info">(0天)</span></td>
+                        <td>加班費 <br><span style="font-size: 12px; font-weight: normal; color: #666;" id="out_ot_info">(0天)</span></td>
                         <td class="amount" id="out_overtime">0</td>
                         <td>請假/其他扣款</td>
                         <td class="amount" id="out_leave_deduct">0</td>
+                    </tr>
+                    <tr>
+                        <td>國定假日出勤 <br><span style="font-size: 12px; font-weight: normal; color: #666;" id="out_holiday_info">(0天)</span></td>
+                        <td class="amount" id="out_holiday_pay">0</td>
+                        <td></td>
+                        <td class="amount"></td>
                     </tr>
                     <tr>
                         <td>獎金 / 其他</td>
@@ -227,17 +253,27 @@
     <!-- 引入 html2pdf 庫 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script>
+        function get2026MonthDays(monthStr) {
+            const daysMap = {
+                "2026年1月": 31, "2026年2月": 28, "2026年3月": 31, "2026年4月": 30,
+                "2026年5月": 31, "2026年6月": 30, "2026年7月": 31, "2026年8月": 31,
+                "2026年9月": 30, "2026年10月": 31, "2026年11月": 30, "2026年12月": 31
+            };
+            return daysMap[monthStr] || 30;
+        }
+
         function formatNumber(num) {
             return Math.round(num).toLocaleString('zh-TW');
         }
 
         function calculate() {
             let name = document.getElementById('in_name').value || "未填寫";
-            let month = document.getElementById('in_month').value || "";
+            let month = document.getElementById('in_month').value;
             let base = parseFloat(document.getElementById('in_base').value) || 0;
             let position = parseFloat(document.getElementById('in_position').value) || 0;
             let meal = parseFloat(document.getElementById('in_meal').value) || 0;
             let otDays = parseFloat(document.getElementById('in_ot_days').value) || 0;
+            let holidayDays = parseFloat(document.getElementById('in_holiday_days').value) || 0;
             let bonus = parseFloat(document.getElementById('in_bonus').value) || 0;
             
             let laborIns = parseFloat(document.getElementById('in_labor').value) || 0;
@@ -250,19 +286,25 @@
 
             let wageBase = base + position + meal;
 
+            let monthDays = get2026MonthDays(month);
+            let monthlyHours = monthDays * 8;
+            let hourlyWage = wageBase / monthlyHours;
+
             let otPay = 0;
             if (otDays > 0) {
-                let hourlyWage = wageBase / 240;
                 let first2Hours = hourlyWage * (4/3) * 2;
                 let next6Hours = hourlyWage * (5/3) * 6;
                 let dailyOtPay = first2Hours + next6Hours;
                 otPay = dailyOtPay * otDays; 
             }
 
+            let dailyWage = wageBase / monthDays;
+            let holidayPay = dailyWage * holidayDays;
+
             let leaveRemain = leaveTotal - leaveUsed;
             if (leaveRemain < 0) leaveRemain = 0;
 
-            let totalAdd = base + position + meal + otPay + bonus;
+            let totalAdd = base + position + meal + otPay + holidayPay + bonus;
             let totalSub = laborIns + healthIns + incomeTax + leaveDeduct;
             let netPay = totalAdd - totalSub;
 
@@ -279,6 +321,9 @@
             
             document.getElementById('out_overtime').innerText = formatNumber(otPay);
             document.getElementById('out_ot_info').innerText = `(${otDays}天)`;
+
+            document.getElementById('out_holiday_pay').innerText = formatNumber(holidayPay);
+            document.getElementById('out_holiday_info').innerText = `(${holidayDays}天)`;
             
             document.getElementById('out_bonus').innerText = formatNumber(bonus);
             
@@ -295,15 +340,15 @@
         function exportPDF() {
             const element = document.getElementById('payslipContent');
             const employeeName = document.getElementById('in_name').value.trim();
-            const monthText = document.getElementById('in_month').value.trim();
+            const monthText = document.getElementById('in_month').value;
             
             const fileName = `熵禾有限公司 薪資單_${employeeName || '未命名'}_${monthText}.pdf`;
 
             const opt = {
-                margin:       [5, 5, 5, 5], // 減少上下左右邊距，確保全部收在頁面內
+                margin:       [5, 5, 5, 5],
                 filename:     fileName,
                 image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 2, useCORS: true },
+                html2canvas:  { scale: 2, useCORS: true, windowWidth: 800 },
                 jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
 
