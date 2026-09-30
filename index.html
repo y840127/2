@@ -69,27 +69,32 @@
         <div class="control-panel no-print">
             <h2>📝 薪資資料輸入 (2026新制)</h2>
             
+            <div class="form-group">
+                <label>計薪月份</label>
+                <select id="in_month" onchange="calculate()">
+                    <option value="2026年1月">2026年1月 (31天)</option>
+                    <option value="2026年2月">2026年2月 (28天)</option>
+                    <option value="2026年3月">2026年3月 (31天)</option>
+                    <option value="2026年4月">2026年4月 (30天)</option>
+                    <option value="2026年5月">2026年5月 (31天)</option>
+                    <option value="2026年6月">2026年6月 (30天)</option>
+                    <option value="2026年7月">2026年7月 (31天)</option>
+                    <option value="2026年8月">2026年8月 (31天)</option>
+                    <option value="2026年9月" selected>2026年9月 (30天)</option>
+                    <option value="2026年10月">2026年10月 (31天)</option>
+                    <option value="2026年11月">2026年11月 (30天)</option>
+                    <option value="2026年12月">2026年12月 (31天)</option>
+                </select>
+            </div>
+
             <div style="display: flex; gap: 10px;">
-                <div class="form-group" style="flex: 1;">
-                    <label>計薪月份</label>
-                    <select id="in_month" onchange="calculate()">
-                        <option value="2026年1月">2026年1月 (31天)</option>
-                        <option value="2026年2月">2026年2月 (28天)</option>
-                        <option value="2026年3月">2026年3月 (31天)</option>
-                        <option value="2026年4月">2026年4月 (30天)</option>
-                        <option value="2026年5月">2026年5月 (31天)</option>
-                        <option value="2026年6月">2026年6月 (30天)</option>
-                        <option value="2026年7月">2026年7月 (31天)</option>
-                        <option value="2026年8月">2026年8月 (31天)</option>
-                        <option value="2026年9月" selected>2026年9月 (30天)</option>
-                        <option value="2026年10月">2026年10月 (31天)</option>
-                        <option value="2026年11月">2026年11月 (30天)</option>
-                        <option value="2026年12月">2026年12月 (31天)</option>
-                    </select>
-                </div>
                 <div class="form-group" style="flex: 1;">
                     <label>員工姓名</label>
                     <input type="text" id="in_name" placeholder="輸入姓名" oninput="calculate()">
+                </div>
+                <div class="form-group" style="flex: 1;">
+                    <label>職務 / 職稱</label>
+                    <input type="text" id="in_title" placeholder="例如: 正職人員" oninput="calculate()">
                 </div>
             </div>
             
@@ -174,6 +179,7 @@
                 <div class="top-info-grid">
                     <div class="employee-info">
                         <div><strong>員工姓名：</strong> <span id="out_name">未填寫</span></div>
+                        <div><strong>職務名稱：</strong> <span id="out_title">未填寫</span></div>
                         <div><strong>計薪期間：</strong> <span id="out_month">2026年9月</span></div>
                     </div>
                     <div class="leave-record">
@@ -268,6 +274,7 @@
 
         function calculate() {
             let name = document.getElementById('in_name').value || "未填寫";
+            let title = document.getElementById('in_title').value || "未填寫";
             let month = document.getElementById('in_month').value;
             let base = parseFloat(document.getElementById('in_base').value) || 0;
             let position = parseFloat(document.getElementById('in_position').value) || 0;
@@ -309,6 +316,7 @@
             let netPay = totalAdd - totalSub;
 
             document.getElementById('out_name').innerText = name;
+            document.getElementById('out_title').innerText = title;
             document.getElementById('out_month').innerText = month;
             
             document.getElementById('out_leave_total').innerText = leaveTotal;
