@@ -5,20 +5,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>熵禾有限公司 </title>
     <style>
-        :root {
-            --bg-color: #f9f6f0;
-            --card-bg: #ffffff;
-            --primary: #8d7b68;
-            --text-main: #333333;
-            --text-muted: #666666;
-            --border-color: #e5e5e5;
-            --print-border: #333;
+       /* 原生列印與 PDF 另存優化設定 */
+        @media print {
+            @page {
+                size: A4 portrait;
+                margin: 0; /* 設為 0 可隱藏瀏覽器預設的頁首（檔名/標題）與頁尾（網址/日期） */
+            }
+            body { 
+                background: white; 
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+                padding: 15mm; /* 邊界改由 body padding 提供 */
+            }
+            .container { margin: 0; padding: 0; display: block; max-width: 100%; }
+            .control-panel { display: none !important; }
+            .preview-panel { display: block; width: 100%; min-width: 100%; }
+            .payslip-card { box-shadow: none; border: none; padding: 0; max-width: 100%; width: 100%; }
         }
-        body, input, button, select {
-            margin: 0;
-            font-family: '標楷體', 'BiauKai', 'DFKai-SB', serif;
-            background-color: var(--bg-color);
-            color: var(--text-main);
         }
         .container { display: flex; flex-wrap: wrap; max-width: 1050px; margin: 20px auto; gap: 20px; padding: 0 15px; }
         .control-panel { flex: 1; min-width: 320px; background: var(--card-bg); padding: 20px; border-radius: 10px; border: 1px solid var(--border-color); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
